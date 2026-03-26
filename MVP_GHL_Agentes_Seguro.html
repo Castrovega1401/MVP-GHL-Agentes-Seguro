@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MVP GHL — Agentes de Seguro MX</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d0f;
+    --surface: #111518;
+    --border: #1e2428;
+    --accent: #00e5a0;
+    --accent2: #0077ff;
+    --warn: #ff6b35;
+    --text: #e8edf0;
+    --muted: #5a6872;
+    --tag-bg: #0d1f17;
+    --tag-border: #00e5a020;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .header-left p {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .badge {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    color: var(--accent);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge.blue { color: var(--accent2); border-color: #0077ff20; background: #001433; }
+  .badge.orange { color: var(--warn); border-color: #ff6b3520; background: #1a0d00; }
+  .scope-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    min-width: 200px;
+    max-width: 220px;
+  }
+  .scope-box .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .scope-box .val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); }
+  .scope-box .val span { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; font-weight: 300; }
+
+  /* LAYOUT */
+  main { padding: 32px 40px; max-width: 1100px; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FUNNEL FLOW */
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .funnel-stage {
+    background: var(--surface);
+    padding: 18px 16px;
+    position: relative;
+  }
+  .funnel-stage::after {
+    content: '▶';
+    position: absolute;
+    right: -9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 10px;
+    z-index: 2;
+  }
+  .funnel-stage:last-child::after { display: none; }
+  .stage-num {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .stage-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .stage-name.blue { color: var(--accent2); }
+  .stage-name.orange { color: var(--warn); }
+  .stage-name.purple { color: #b388ff; }
+  .stage-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* MODULE CARDS GRID */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .module-card:hover { border-color: #2a3540; }
+  .module-card.priority-1 { border-left: 3px solid var(--accent); }
+  .module-card.priority-2 { border-left: 3px solid var(--accent2); }
+  .module-card.priority-3 { border-left: 3px solid var(--warn); }
+  .module-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .module-icon { font-size: 18px; }
+  .priority-tag {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 1px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .p1 { background: #0d1f17; color: var(--accent); border: 1px solid #00e5a030; }
+  .p2 { background: #001433; color: var(--accent2); border: 1px solid #0077ff30; }
+  .p3 { background: #1a0d00; color: var(--warn); border: 1px solid #ff6b3530; }
+  .module-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .module-desc { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+  .checklist { list-style: none; }
+  .checklist li {
+    font-size: 11px;
+    color: #8a9ba8;
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .checklist li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+  }
+  .checklist li.key { color: var(--text); }
+  .checklist li.key::before { content: '→'; color: var(--accent); }
+
+  /* PIPELINE */
+  .pipeline {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .pipeline-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stages-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .stage-pill {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stage-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .dot-green { background: var(--accent); }
+  .dot-blue { background: var(--accent2); }
+  .dot-orange { background: var(--warn); }
+  .dot-red { background: #ff4444; }
+  .dot-purple { background: #b388ff; }
+  .dot-gray { background: var(--muted); }
+  .arrow-sep { color: var(--border); font-size: 10px; }
+
+  /* AUTOMATION TABLE */
+  .auto-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .auto-table th {
+    text-align: left;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .auto-table td {
+    padding: 10px 12px;
+    font-size: 11px;
+    border-bottom: 1px solid #0e1518;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .auto-table tr:last-child td { border-bottom: none; }
+  .auto-table tr:hover td { background: #0d1418; }
+  .trigger-cell { color: var(--accent2); }
+  .action-cell { color: var(--text); }
+  .channel-cell { color: var(--muted); }
+  .tag-cell { }
+  .inline-tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 1px;
+    margin: 1px 2px;
+  }
+  .t-green { background: var(--tag-bg); color: var(--accent); border: 1px solid #00e5a020; }
+  .t-blue { background: #001433; color: var(--accent2); border: 1px solid #0077ff20; }
+  .t-orange { background: #1a0d00; color: var(--warn); border: 1px solid #ff6b3520; }
+
+  /* SNAPSHOT BOX */
+  .snapshot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .snap-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px;
+  }
+  .snap-box h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .snap-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #0e1518;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .snap-item:last-child { border-bottom: none; }
+  .snap-item .check { color: var(--accent); flex-shrink: 0; }
+  .snap-item .text { color: #8a9ba8; }
+  .snap-item .text strong { color: var(--text); }
+
+  /* TIMELINE */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .tl-phase {
+    background: var(--surface);
+    padding: 18px 16px;
+  }
+  .tl-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .tl-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .tl-time {
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tl-items { list-style: none; }
+  .tl-items li {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+  .tl-items li::before { content: '·'; position: absolute; left: 2px; color: var(--accent); }
+
+  /* NOTE */
+  .note {
+    background: #0d1a12;
+    border: 1px solid #00e5a015;
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    font-size: 11px;
+    color: #7ab895;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .note strong { color: var(--accent); }
+  .note.warn { background: #170f08; border-color: #ff6b3515; border-left-color: var(--warn); color: #c0895a; }
+  .note.warn strong { color: var(--warn); }
+
+  footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  @media (max-width: 768px) {
+    header, main, footer { padding: 20px; }
+    .funnel { grid-template-columns: 1fr 1fr; }
+    .modules-grid { grid-template-columns: 1fr; }
+    .snapshot-grid { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: 1fr; }
+    .funnel-stage::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>MVP · Sistema GHL<br>Agentes de Seguro MX</h1>
+    <p>Blueprint de implementación · Comunidad 400+ agentes</p>
+    <div class="badge-row">
+      <span class="badge">GoHighLevel</span>
+      <span class="badge blue">Captación</span>
+      <span class="badge blue">Gestión</span>
+      <span class="badge orange">RRSS → CRM</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div class="scope-box">
+      <div class="label">Módulos MVP</div>
+      <div class="val">6 <span>bloques</span></div>
+    </div>
+    <div class="scope-box">
+      <div class="label">Entrega est.</div>
+      <div class="val">3 <span>semanas</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- FLUJO GENERAL -->
+  <div class="section-title">Flujo General del Sistema</div>
+  <div class="funnel">
+    <div class="funnel-stage">
+      <div class="stage-num">01</div>
+      <div class="stage-name">ATRACCIÓN</div>
+      <div class="stage-desc">Lead entra desde anuncio / post de RRSS (FB, IG, TikTok) o formulario de landing</div>
+    </div>
+    <div class="funnel-stage">
+      <div class="stage-num">02</div>
+      <div class="stage-name blue">CAPTACIÓN</div>
+      <div class="stage-desc">Lead entra al CRM vía webhook o integración nativa. Tag automático por fuente</div>
+    </div>
+    <div class="funnel-stage">
+      <div class="stage-num">03</div>
+      <div class="stage-name orange">NURTURING</div>
+      <div class="stage-desc">Secuencia automática: WhatsApp + Email. Calificación por respuesta. Bot de inicio</div>
+    </div>
+    <div class="funnel-stage">
+      <div class="stage-num">04</div>
+      <div class="stage-name purple">CIERRE</div>
+      <div class="stage-desc">Cita agendada → Pipeline de seguimiento → Póliza emitida → Reactivación anual</div>
+    </div>
+  </div>
+  <div class="note">
+    <strong>Contexto clave:</strong> El agente ya sabe atraer clientes con contenido. El sistema resuelve qué pasa DESPUÉS de que el lead ve el contenido: captarlo, calificarlo y gestionar el seguimiento hasta cerrar la póliza.
+  </div>
+
+  <!-- 6 MÓDULOS -->
+  <div class="section-title">Los 6 Módulos del MVP</div>
+  <div class="modules-grid">
+
+    <div class="module-card priority-1">
+      <div class="module-header">
+        <div class="module-icon">📥</div>
+        <span class="priority-tag p1">CRÍTICO</span>
+      </div>
+      <div class="module-title">M1 · Captación de Leads</div>
+      <div class="module-desc">Punto de entrada unificado. Todo lead de RRSS aterriza aquí con su fuente registrada.</div>
+      <ul class="checklist">
+        <li class="key">Landing Page con formulario (GHL Pages)</li>
+        <li class="key">Integración Meta Leads Ads nativa</li>
+        <li class="key">Webhook para TikTok / otras fuentes</li>
+        <li>Campo: nombre, teléfono, email, tipo de seguro de interés</li>
+        <li>Tag automático por fuente de origen</li>
+        <li>Notificación inmediata al agente</li>
+      </ul>
+    </div>
+
+    <div class="module-card priority-1">
+      <div class="module-header">
+        <div class="module-icon">🤖</div>
+        <span class="priority-tag p1">CRÍTICO</span>
+      </div>
+      <div class="module-title">M2 · Bot de Calificación (WhatsApp)</div>
+      <div class="module-desc">Primer contacto automático. Califica antes de que el agente intervenga.</div>
+      <ul class="checklist">
+        <li class="key">Mensaje de bienvenida en &lt;2 min post-lead</li>
+        <li class="key">3 preguntas de calificación (tipo seguro, presupuesto, urgencia)</li>
+        <li class="key">Rama SÍ calificado → asigna agente + agenda cita</li>
+        <li>Rama NO calificado → nurturing pasivo (email)</li>
+        <li>Usa GHL Conversation AI o flujo de botones</li>
+        <li>Registra respuestas como custom fields</li>
+      </ul>
+    </div>
+
+    <div class="module-card priority-1">
+      <div class="module-header">
+        <div class="module-icon">📊</div>
+        <span class="priority-tag p1">CRÍTICO</span>
+      </div>
+      <div class="module-title">M3 · Pipeline de Gestión</div>
+      <div class="module-desc">El agente ve todo su proceso en un tablero Kanban claro y accionable.</div>
+      <ul class="checklist">
+        <li class="key">1 pipeline principal: Nuevo → Contactado → Calificado → Cita → Propuesta → Cerrado / Perdido</li>
+        <li class="key">Oportunidades con valor estimado de póliza</li>
+        <li>Mover etapa = dispara siguiente automatización</li>
+        <li>Vista por agente (para admin de la comunidad)</li>
+        <li>Filtros por ramo (vida, GMM, auto, etc.)</li>
+      </ul>
+    </div>
+
+    <div class="module-card priority-2">
+      <div class="module-header">
+        <div class="module-icon">📅</div>
+        <span class="priority-tag p2">IMPORTANTE</span>
+      </div>
+      <div class="module-title">M4 · Agendamiento de Citas</div>
+      <div class="module-desc">El lead agenda directamente en el calendario del agente. Sin fricción.</div>
+      <ul class="checklist">
+        <li class="key">Calendario individual por agente</li>
+        <li class="key">Link de agendamiento personalizable</li>
+        <li>Confirmación automática por WhatsApp + Email</li>
+        <li>Recordatorio 24h y 1h antes</li>
+        <li>Opción: Google Meet o presencial</li>
+        <li>Al confirmar cita → mueve pipeline a "Cita"</li>
+      </ul>
+    </div>
+
+    <div class="module-card priority-2">
+      <div class="module-header">
+        <div class="module-icon">💬</div>
+        <span class="priority-tag p2">IMPORTANTE</span>
+      </div>
+      <div class="module-title">M5 · Secuencias de Nurturing</div>
+      <div class="module-desc">Leads que no compran hoy siguen recibiendo valor hasta que estén listos.</div>
+      <ul class="checklist">
+        <li class="key">Secuencia "No contactado" → 3 intentos en 48h</li>
+        <li class="key">Secuencia "Post-cita sin cierre" → 5 días de seguimiento</li>
+        <li>Email con contenido educativo (reutiliza el del curso)</li>
+        <li>WhatsApp con recordatorios suaves</li>
+        <li>Secuencia de reactivación a los 60 y 90 días</li>
+        <li>Tag "ganado" detiene todas las secuencias</li>
+      </ul>
+    </div>
+
+    <div class="module-card priority-3">
+      <div class="module-header">
+        <div class="module-icon">📈</div>
+        <span class="priority-tag p3">OPCIONAL V1</span>
+      </div>
+      <div class="module-title">M6 · Reportes y Dashboard</div>
+      <div class="module-desc">Visibilidad para el agente y para el admin de la comunidad.</div>
+      <ul class="checklist">
+        <li class="key">Dashboard: leads por fuente, tasa de contacto, tasa de cierre</li>
+        <li>Reporte semanal automático por email al agente</li>
+        <li>Vista consolidada para el dueño de la comunidad</li>
+        <li>Integración con GHL Reporting nativo</li>
+        <li>Identificar agentes activos vs inactivos</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- PIPELINES DETALLE -->
+  <div class="section-title">Estructura de Pipelines</div>
+
+  <div class="pipeline">
+    <div class="pipeline-name">
+      🎯 Pipeline Principal — Ciclo de Venta
+    </div>
+    <div class="stages-row">
+      <div class="stage-pill"><span class="dot dot-blue"></span>Nuevo Lead</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-green"></span>Contactado</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-green"></span>Calificado</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-blue"></span>Cita Agendada</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-orange"></span>Propuesta Enviada</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-green"></span>Póliza Emitida ✓</div>
+      <span class="arrow-sep">|</span>
+      <div class="stage-pill"><span class="dot dot-red"></span>Perdido</div>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-name">
+      🔁 Pipeline de Renovación (Post-venta)
+    </div>
+    <div class="stages-row">
+      <div class="stage-pill"><span class="dot dot-gray"></span>Cliente Activo</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-orange"></span>Aviso 60 días antes</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-orange"></span>Aviso 30 días antes</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-blue"></span>En proceso renovación</div>
+      <span class="arrow-sep">→</span>
+      <div class="stage-pill"><span class="dot dot-green"></span>Renovado ✓</div>
+      <span class="arrow-sep">|</span>
+      <div class="stage-pill"><span class="dot dot-red"></span>Cancelado</div>
+    </div>
+  </div>
+
+  <!-- AUTOMATIZACIONES -->
+  <div class="section-title">Automatizaciones Clave</div>
+
+  <div class="pipeline" style="padding:0;">
+    <table class="auto-table">
+      <thead>
+        <tr>
+          <th>TRIGGER</th>
+          <th>ACCIÓN AUTOMÁTICA</th>
+          <th>CANAL</th>
+          <th>TAGS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="trigger-cell">Lead ingresa al CRM</td>
+          <td class="action-cell">Envía mensaje de bienvenida + inicia bot calificación</td>
+          <td class="channel-cell">WhatsApp</td>
+          <td><span class="inline-tag t-blue">lead-nuevo</span><span class="inline-tag t-green">fuente-meta</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Lead no responde en 2h</td>
+          <td class="action-cell">Reintento WhatsApp + notificación al agente</td>
+          <td class="channel-cell">WA + Push</td>
+          <td><span class="inline-tag t-orange">no-contactado</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Bot: Lead calificado</td>
+          <td class="action-cell">Asignar agente + enviar link de agenda + mover pipeline</td>
+          <td class="channel-cell">WA + Email</td>
+          <td><span class="inline-tag t-green">calificado</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Bot: Lead no calificado</td>
+          <td class="action-cell">Mover a secuencia nurturing pasivo (email semanal)</td>
+          <td class="channel-cell">Email</td>
+          <td><span class="inline-tag t-orange">no-calificado</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Cita confirmada</td>
+          <td class="action-cell">Confirmación + recordatorio 24h + 1h antes</td>
+          <td class="channel-cell">WA + Email</td>
+          <td><span class="inline-tag t-blue">cita-agendada</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Cita no se presenta</td>
+          <td class="action-cell">Mensaje de reagendamiento + 2 intentos en 48h</td>
+          <td class="channel-cell">WhatsApp</td>
+          <td><span class="inline-tag t-orange">no-show</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">Etapa = "Póliza Emitida"</td>
+          <td class="action-cell">Mensaje de bienvenida como cliente + detener secuencias + iniciar pipeline renovación</td>
+          <td class="channel-cell">WA + Email</td>
+          <td><span class="inline-tag t-green">cliente</span><span class="inline-tag t-green">ganado</span></td>
+        </tr>
+        <tr>
+          <td class="trigger-cell">60 días antes de vencer póliza</td>
+          <td class="action-cell">Secuencia de renovación automática</td>
+          <td class="channel-cell">WA + Email</td>
+          <td><span class="inline-tag t-orange">renovacion-prox</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QUÉ INCLUYE EL SNAPSHOT -->
+  <div class="section-title">Contenido del Snapshot para los 400 Agentes</div>
+  <div class="snapshot-grid">
+    <div class="snap-box">
+      <h4>📋 Estructura base</h4>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>2 Pipelines</strong> configurados (Venta + Renovación)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>1 Landing Page</strong> de captación personalizable</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>1 Calendario</strong> de citas preconfigurado</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Custom Fields</strong>: tipo seguro, presupuesto, ramo, fecha vencimiento</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Tags</strong> estandarizados para toda la comunidad</span></div>
+    </div>
+    <div class="snap-box">
+      <h4>🤖 Automatizaciones incluidas</h4>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Bot de calificación</strong> WhatsApp (flujo de botones)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Secuencia "No contactado"</strong> (3 intentos / 48h)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Secuencia post-cita</strong> sin cierre (5 días)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Nurturing pasivo</strong> 60-90 días (email)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Secuencia renovación</strong> 60/30 días antes</span></div>
+    </div>
+    <div class="snap-box">
+      <h4>✉️ Plantillas de mensajes</h4>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>5 templates WhatsApp</strong> precargados y aprobados</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>3 emails</strong> de nurturing genéricos editables</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Confirmación y recordatorios de cita</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Mensaje de bienvenida como cliente</span></div>
+    </div>
+    <div class="snap-box">
+      <h4>⚙️ Configuración del agente</h4>
+      <div class="snap-item"><span class="check">✓</span><span class="text"><strong>Sub-cuenta lista</strong> con el snapshot aplicado</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Conectar número WhatsApp propio</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Personalizar landing (logo, nombre, ciudad)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Conectar Meta Ads (10 min de setup)</span></div>
+      <div class="snap-item"><span class="check">✓</span><span class="text">Video tutorial de onboarding incluido</span></div>
+    </div>
+  </div>
+
+  <div class="note warn">
+    <strong>Restricción importante:</strong> Los templates de WhatsApp Business deben aprobarse por Meta antes de poder usarse en automatizaciones. Anticipar 2-5 días hábiles de aprobación. Recomendado: crear los templates en la cuenta del agente durante el onboarding.
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="section-title">Plan de Implementación · 3 Semanas</div>
+  <div class="timeline">
+    <div class="tl-phase">
+      <div class="tl-num">01</div>
+      <div class="tl-title">Construcción Core</div>
+      <div class="tl-time">Semana 1 · Días 1–7</div>
+      <ul class="tl-items">
+        <li>Crear sub-cuenta maestra en GHL</li>
+        <li>Configurar pipelines + custom fields</li>
+        <li>Construir landing de captación</li>
+        <li>Crear y activar flujo bot calificación WA</li>
+        <li>Conectar Meta Leads Ads (prueba con 1 formulario)</li>
+        <li>Redactar y subir templates WA</li>
+      </ul>
+    </div>
+    <div class="tl-phase">
+      <div class="tl-num">02</div>
+      <div class="tl-title">Automatizaciones + QA</div>
+      <div class="tl-time">Semana 2 · Días 8–14</div>
+      <ul class="tl-items">
+        <li>Construir todas las secuencias de nurturing</li>
+        <li>Configurar calendario + confirmaciones</li>
+        <li>Secuencia de renovación (post-venta)</li>
+        <li>Testing completo de todos los flujos</li>
+        <li>Ajustes de mensajes y tiempos</li>
+        <li>Empaquetar en Snapshot exportable</li>
+      </ul>
+    </div>
+    <div class="tl-phase">
+      <div class="tl-num">03</div>
+      <div class="tl-title">Lanzamiento Comunidad</div>
+      <div class="tl-time">Semana 3 · Días 15–21</div>
+      <ul class="tl-items">
+        <li>Aplicar snapshot a primeros 10 agentes piloto</li>
+        <li>Video de onboarding 15 min grabado</li>
+        <li>Sesión grupal de activación (live)</li>
+        <li>Guía rápida PDF de setup en 10 pasos</li>
+        <li>Rollout al resto de los 400 agentes</li>
+        <li>Canal de soporte para dudas técnicas</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:12px;">
+    <strong>Recomendación de rollout:</strong> Lanzar primero con 10–20 agentes voluntarios "early adopters" que ya tengan leads activos. Con sus resultados reales, el resto de la comunidad adopta más rápido. El snapshot se aplica a cada sub-cuenta en menos de 5 minutos.
+  </div>
+
+</main>
+
+<footer>
+  <span>MVP · GHL · Agentes de Seguro MX · 2025</span>
+  <span>6 módulos · 3 semanas · 400+ agentes</span>
+</footer>
+
+</body>
+</html>
